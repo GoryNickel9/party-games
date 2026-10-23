@@ -86,13 +86,22 @@ describe('Golf scoring and three ELO scopes', () => {
     expect(html.match(/<th>/g)).toHaveLength(7)
     for (const label of ['ELO modalità', 'ELO gioco', 'ELO Generale']) expect(html).toContain(`<th>${label}</th>`)
     const noMode = detail({ ...play, modeId: null })
-    expect(noMode).not.toContain('<th>ELO modalità</th>')
+    expect(noMode).toContain('<th>ELO modalità</th>')
     expect(noMode).toContain('<th>ELO gioco</th>')
+    expect(noMode.match(/<th>/g)).toHaveLength(7)
+    expect(noMode.match(/<span class="muted">-<\/span>/g)).toHaveLength(3)
+    expect(noMode).toContain('questa partita non ha una modalità associata')
     const noModes = detail({ ...play, modeId: null }, { ...game, modes: [] })
     expect(noModes.match(/<th>/g)).toHaveLength(6)
     expect(noModes).toContain('<th>ELO</th>')
     expect(noModes).not.toContain('<th>ELO gioco</th>')
     expect(getPlayElo(players, [{ ...play, modeId: null }], play.id, [game]).mode).toEqual({})
+  })
+
+  it('retains all three ELO labels when every mode is archived', () => {
+    const html = detail({ ...play, modeId: null }, { ...game, modes: game.modes!.map(mode => ({ ...mode, active: false })) })
+    for (const label of ['ELO modalità', 'ELO gioco', 'ELO Generale']) expect(html).toContain(`<th>${label}</th>`)
+    expect(html.match(/<span class="muted">-<\/span>/g)).toHaveLength(3)
   })
 
   it('orders history scores and attributes inferred wins in analytics to the lowest score', () => {
