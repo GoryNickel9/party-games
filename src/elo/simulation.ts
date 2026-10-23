@@ -265,6 +265,7 @@ export function simulateAllPlays(plays: SimulationPlay[]): SimulationResult {
 
     processedPlays++
     const gameId = play.game_id
+    const winnerCount = play.play_scores.filter(score => score.winner).length
     if (!gamePlayers[gameId]) {
       gamePlayers[gameId] = {}
     }
@@ -295,7 +296,7 @@ export function simulateAllPlays(plays: SimulationPlay[]): SimulationResult {
         winner: score.winner || false,
         position: score.position || undefined,
         score: score.score,
-        draw: score.draw === true
+        draw: score.draw === true || (score.winner === true && winnerCount > 1)
       }
     })
 
@@ -312,10 +313,10 @@ export function simulateAllPlays(plays: SimulationPlay[]): SimulationResult {
       state.lastPlayedAt = play.played_at
 
       const playerData = playersData.find(p => p.playerId === result.playerId)
-      if (playerData?.winner) {
-        state.wins++
-      } else if (playerData?.draw) {
+      if (playerData?.draw) {
         state.draws++
+      } else if (playerData?.winner) {
+        state.wins++
       } else {
         state.losses++
       }

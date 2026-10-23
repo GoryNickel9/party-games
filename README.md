@@ -107,6 +107,10 @@ Non impostare `VITE_DEMO_MODE` in produzione. Le variabili del database e della 
 
 ## Verifiche
 
+Le statistiche ELO per gioco, modalità e generale contano i primi classificati a pari merito come pareggi, senza aggiungere vittorie o sconfitte. Il ricalcolo riconosce anche le partite storiche con più vincitori e flag `draw` assente o falso. Punteggi uguali tra i perdenti non producono pareggi. Le formule dei rating e le classifiche delle vittorie condivise restano invariate.
+
+`src/elo/draws.test.ts` verifica questi casi, i pareggi dedotti dai punteggi di Bowling e Golf e la conservazione del totale vittorie + pareggi + sconfitte.
+
 ```powershell
 npm run test
 npm run build
