@@ -1,0 +1,63 @@
+.play-history-page { display: grid; gap: 24px; }
+.play-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.play-history-heading h1 { margin: 0; font-size: 30px; line-height: 36px; font-weight: 700; color: #fff; letter-spacing: 0; }
+.play-history-heading p { color: #94a3b8; font-size: 16px; margin: 8px 0 0; }
+.play-history-heading .button { padding: 8px 16px; font-size: 16px; font-weight: 400; }
+.play-history-filters, .play-history-card, .play-history-empty { background: #1e293b; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a; min-width: 0; }
+.play-history-filters h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #fff; }
+.play-history-filters h2 svg { color: #94a3b8; }
+.play-history-filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.play-history-filter-grid.has-modes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.play-history-filter-grid input, .play-history-filter-grid select { width: 100%; min-width: 0; padding: 8px 16px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: #fff; font: inherit; font-size: 16px; line-height: 24px; }
+.play-history-filter-grid :is(input, select):focus { outline: 2px solid #10b981; outline-offset: 1px; }
+.play-history-filter-grid input::placeholder { color: #94a3b8; }
+.play-history-search { position: relative; min-width: 0; }
+.play-history-search > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.play-history-search input { padding-left: 40px; }
+.play-history-date-filters { display: flex; gap: 8px; min-width: 0; }
+.play-history-date-filters > select { flex: 1; }
+.play-history-clear { background: none; border: 0; color: #10b981; font-size: 14px; padding: 0; margin-top: 16px; }
+.play-history-list { display: grid; gap: 16px; }
+.play-history-page-info { text-align: center; font-size: 14px; color: #94a3b8; margin: 0; }
+.play-history-card:hover { background: #263449; }
+.play-history-open { display: flex; align-items: flex-start; gap: 16px; color: inherit; text-decoration: none; }
+.play-history-open:focus-visible { outline: 2px solid #10b981; outline-offset: 8px; border-radius: 8px; }
+.play-history-cover { width: 80px; height: 80px; display: grid; place-items: center; background: #334155; border-radius: 8px; flex-shrink: 0; font-size: 40px; overflow: hidden; }
+.play-history-info { flex: 1; min-width: 0; }
+.play-history-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.play-history-title h3 { font-size: 20px; line-height: 28px; font-weight: 600; color: #fff; margin: 0; }
+.play-history-comments { display: inline-flex; align-items: center; gap: 4px; border-radius: 9999px; padding: 4px 8px; background: #06b6d426; color: #67e8f9; font-size: 12px; font-weight: 500; }
+.play-history-meta { display: flex; flex-wrap: wrap; gap: 16px; color: #94a3b8; font-size: 14px; line-height: 20px; margin-bottom: 12px; }
+.play-history-meta > span { display: flex; align-items: center; gap: 4px; overflow-wrap: anywhere; }
+.play-history-scores { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.play-history-scores > span { display: inline-flex; align-items: center; gap: 4px; background: #334155; color: #cbd5e1; border-radius: 9999px; padding: 4px 12px; font-size: 12px; line-height: 16px; font-weight: 500; }
+.play-history-scores > span.winner { color: #10b981; background: #10b98133; }
+.play-history-scores > small { color: #64748b; font-size: 12px; }
+.play-history-notes { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; color: #cbd5e1; font-size: 14px; line-height: 20px; }
+.play-history-notes svg { margin-top: 2px; flex-shrink: 0; color: #64748b; }
+.play-history-notes span { font-style: italic; overflow-wrap: anywhere; white-space: pre-wrap; }
+.play-history-winner { flex-shrink: 0; background: #10b98133; padding: 8px 16px; border-radius: 8px; color: #10b981; font-size: 14px; line-height: 20px; font-weight: 500; max-width: 35%; overflow-wrap: anywhere; }
+.play-history-winner span, .play-history-winner small { display: flex; align-items: center; gap: 4px; }
+.play-history-winner.tie { background: #f59e0b33; color: #fbbf24; }
+.play-history-winner small { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.play-history-card footer { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.play-history-mode { display: inline-flex; padding: 4px 8px; font-size: 12px; line-height: 16px; font-weight: 500; border-radius: 4px; background: #334155; color: #cbd5e1; }
+.play-history-card footer .button { margin-left: auto; padding: 8px 12px; font-size: 14px; min-height: 36px; }
+.play-history-pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.play-history-pagination :is(button, span) { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 8px; background: #334155; color: #fff; font-size: 14px; }
+.play-history-pagination span { background: none; color: #94a3b8; }
+.play-history-pagination button[aria-current="page"] { background: #10b981; font-weight: 700; }
+.play-history-pagination button:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
+.play-history-empty { text-align: center; padding: 48px; }
+.play-history-empty > svg { color: #475569; }
+.play-history-empty h3 { font-size: 20px; color: #fff; margin: 16px 0 8px; }
+.play-history-empty p { color: #94a3b8; margin: 0 0 24px; }
+@media (max-width: 1023px) {
+  .play-history-filter-grid, .play-history-filter-grid.has-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .play-history-filter-grid, .play-history-filter-grid.has-modes { grid-template-columns: 1fr; }
+  .play-history-heading { flex-wrap: wrap; }
+  .play-history-open { display: grid; grid-template-columns: 80px minmax(0, 1fr); }
+  .play-history-winner { grid-column: 2; justify-self: start; max-width: 100%; }
+}

@@ -1,0 +1,102 @@
+.king-statistics-page .statistics-panel {
+  border-radius: 12px;
+}
+
+.statistics-panel h2 > svg {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.statistics-general-icon { color: #eab308; }
+.statistics-games-icon { color: #10b981; }
+
+.statistics-chart, .statistics-chart-empty {
+  min-width: 0;
+  border-radius: 8px;
+  background: #334155;
+  padding: 16px;
+}
+
+.statistics-chart { min-height: 320px; }
+
+.statistics-chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 256px;
+  gap: 8px;
+  text-align: center;
+}
+
+.statistics-chart-empty > svg { color: #64748b; }
+.statistics-chart-empty p { margin: 0; }
+.statistics-chart-empty small { color: #94a3b8; font-size: 14px; }
+
+.statistics-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  padding-top: 12px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.statistics-chart-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.statistics-chart-legend i {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.statistics-game-list { display: grid; gap: 16px; }
+.statistics-game { min-width: 0; padding: 16px; border: 1px solid #334155; border-radius: 8px; }
+.statistics-game-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.statistics-game-name { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.statistics-game-name h3 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.statistics-game-name p { margin: 4px 0 0; }
+.statistics-game-cover { display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #334155; color: #94a3b8; }
+.statistics-game-cover img { width: 100%; height: 100%; object-fit: contain; }
+.statistics-game-controls { display: flex; align-items: center; flex-shrink: 0; gap: 16px; }
+.statistics-game-controls span { color: #94a3b8; font-size: 14px; }
+.statistics-game-controls strong { display: block; font-size: 20px; line-height: 1.4; }
+.statistics-game-average strong { color: #10b981; }
+.statistics-game-duration strong { color: #3b82f6; }
+.statistics-game-controls .button { white-space: nowrap; }
+.statistics-game-details { display: grid; gap: 24px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #334155; }
+.statistics-game-details h4 { color: #cbd5e1; font-size: 14px; font-weight: 600; margin: 0 0 12px; }
+.statistics-player-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.statistics-player { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px; background: #334155; border-radius: 8px; }
+.statistics-player > img, .statistics-player-avatar { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; object-fit: cover; font-size: 14px; font-weight: 700; }
+.statistics-player-name { flex: 1; min-width: 0; }
+.statistics-player-name b { display: block; font-size: 16px; overflow-wrap: anywhere; }
+.statistics-player small { display: block; font-size: 14px; color: #94a3b8; }
+.statistics-player-average { text-align: right; }
+.statistics-player-average strong { color: #10b981; font-size: 18px; }
+
+@media (max-width: 1100px) {
+  .statistics-game-summary { flex-wrap: wrap; gap: 16px; }
+  .statistics-game-controls { flex: 1 1 100%; flex-wrap: wrap; }
+  .statistics-game-controls .button { margin-left: auto; }
+  .statistics-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .statistics-player-grid { grid-template-columns: 1fr; }
+  .statistics-game-controls { gap: 16px 24px; }
+  .statistics-game-controls .button { width: 100%; margin-left: 0; }
+  .statistics-chart { padding: 12px 4px; }
+  .statistics-chart-legend { padding-right: 8px; padding-left: 8px; }
+  .statistics-game { padding: 12px; }
+  .statistics-player { gap: 10px; }
+}

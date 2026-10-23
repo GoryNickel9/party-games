@@ -1,0 +1,12 @@
+.game-thumbnail-image { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.favorite-game .game-mini-icon { width: 48px; height: 48px; font-size: 24px; }
+.dashboard-analytics .game-mini-icon, .dashboard-analytics .dashboard-player-avatar { width: 64px; height: 64px; font-size: 28px; }
+.dashboard-analytics .dashboard-player-avatar { border: 0; border-radius: 8px; }
+.dashboard-analytics .dashboard-player-avatar img { border-radius: inherit; }
+.dashboard-analytics .analytics-list.compact .analytics-list-row { min-height: 80px; gap: 16px; }
+.dashboard-analytics .analytics-list-name b { white-space: normal; overflow-wrap: anywhere; }
+.kingscore-recent .match-game-icon { width: 48px; height: 48px; font-size: 24px; }
+.kingscore-recent .match-row { grid-template-columns: 48px 48px minmax(0, 1fr) 116px; }
+@media (max-width: 700px) {
+  .kingscore-recent .match-row { grid-template-columns: 38px 48px minmax(0, 1fr); }
+}
