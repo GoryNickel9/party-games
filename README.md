@@ -42,7 +42,7 @@ Il menu principale contiene «KingScore» subito dopo «Wrapped», sia su deskto
 
 Il dettaglio partita riprende il layout di KingScore: copertina, data, luogo e durata, eventuale modalità, note, commenti e tabella dei punteggi. La tabella mostra posizione, giocatore, punteggio, vincitore, ELO del gioco ed ELO generale, con le variazioni prodotte da quella partita.
 
-L’admin apre «Modifica» dalla riga dello storico o dal dettaglio, nella rotta `/plays/:id/edit`. Il modulo precompilato aggiorna la stessa partita e sostituisce i punteggi in una transazione: se una scrittura fallisce, restano i dati precedenti. ID, autore e data di creazione restano invariati; cambiare solo i punteggi conserva anche l’orario originale. Il gioco è fisso: ricerca, cambio del gioco e aggiunta di un nuovo gioco sono disponibili solo quando si crea una partita. La modalità è facoltativa; una modalità già archiviata può essere mantenuta, mentre una nuova selezione deve essere attiva. Il salvataggio ricalcola gli ELO, compresi quelli delle partite successive.
+L’admin apre «Modifica» dalla riga dello storico o dal dettaglio, nella rotta `/plays/:id/edit`. Il modulo precompilato aggiorna la stessa partita e sostituisce i punteggi in una transazione: se una scrittura fallisce, restano i dati precedenti. ID, autore e data di creazione restano invariati; cambiare solo i punteggi conserva anche l’orario originale. Il gioco è fisso: ricerca, cambio del gioco e aggiunta di un nuovo gioco sono disponibili solo quando si crea una partita. La modalità è obbligatoria se il gioco ne ha almeno una, anche quando si modifica una partita storica senza modalità. Una modalità già archiviata può essere mantenuta, mentre una nuova selezione deve essere attiva. Se sono tutte archiviate e la partita non ne ha una associata, occorre attivarne una nella gestione giochi. Il salvataggio ricalcola gli ELO, compresi quelli delle partite successive.
 
 I commenti accettano da 1 a 1000 caratteri e mostrano autore, data e indicazione delle modifiche. Il server assegna l’autore dalla sessione. Anche gli admin possono modificare o eliminare solo i propri commenti.
 
@@ -73,7 +73,7 @@ Il salvataggio o l’eliminazione di una partita aggiorna la cache ELO sul serve
 
 Ogni gioco può avere da 0 a 30 modalità. Un nuovo gioco parte senza modalità. In Giochi → Modifica l’admin può aggiungerle, rinominarle, archiviarle o eliminarle, anche tutte. Mario Kart World ha soltanto Gran Premio e Sopravvivenza.
 
-La partita può avere `mode_id = NULL`, che rappresenta l’assenza della modalità. L’interfaccia non crea né mostra una modalità fittizia per questo caso. La selezione compare solo se il gioco ha modalità disponibili. Il database verifica il collegamento con una chiave esterna composta da gioco e modalità.
+Il salvataggio richiede una modalità quando il gioco ne ha almeno una. Per i giochi senza modalità, `mode_id = NULL` resta valido e il selettore non compare. Le partite storiche senza modalità restano leggibili; se il gioco ora ne prevede, bisogna sceglierne una prima di salvare una modifica. Il database verifica il collegamento con una chiave esterna composta da gioco e modalità.
 
 Il cestino rimuove una modalità dal modulo; «Salva modifiche» applica l’eliminazione. Il server azzera il collegamento delle partite interessate e cancella la modalità nella stessa transazione, poi ricostruisce gli ELO. Partite, punteggi, ELO per gioco ed ELO generale restano disponibili. La classifica specifica della modalità eliminata viene rimossa.
 
@@ -81,7 +81,7 @@ Rating ELO, storico partite, dettaglio gioco e statistiche permettono di selezio
 
 Nel dettaglio partita gli ELO compaiono nell’ordine: **ELO modalità** (se la partita ha una modalità), **ELO gioco**, **ELO Generale**. Per i giochi senza modalità, la colonna del gioco si chiama **ELO**. Ogni valore e variazione si riferisce a quella partita, prima delle partite successive.
 
-Golf (3, 9 e 18 buche) usa punteggi crescenti: 5 precede 6, che precede 10. La stessa regola vale per le posizioni, lo storico e tutti gli ELO. I vincitori indicati manualmente restano al primo posto; in loro assenza, se i flag vincitore non sono specificati, vince il punteggio minimo. Il modulo continua a consentire la selezione manuale dei vincitori. Le posizioni storiche di Golf vengono ricalcolate durante la lettura e la simulazione; non occorre modificare le partite esistenti. Dopo la pubblicazione usa «Ricalcola Tutti gli ELO» per aggiornare anche le cache nel database.
+Golf (3, 9 e 18 buche) usa punteggi crescenti: 5 precede 6, che precede 10. La stessa regola vale per le posizioni, lo storico e tutti gli ELO. I vincitori selezionati restano al primo posto. Per salvare una partita è obbligatorio selezionare almeno un vincitore tra i partecipanti; per un pareggio se ne possono selezionare più di uno. Il modulo e le API applicano gli stessi controlli e rifiutano anche i flag vincitore assenti: il salvataggio non li ricava dal punteggio. Solo la lettura delle partite storiche prive di questi flag continua a ricavare il vincitore dal punteggio minimo. Le posizioni storiche di Golf vengono ricalcolate durante la lettura e la simulazione; non occorre modificare le partite esistenti. Dopo la pubblicazione usa «Ricalcola Tutti gli ELO» per aggiornare anche le cache nel database.
 
 La regola riconosce la parola «Golf» nel nome del gioco o della modalità, comprese quelle archiviate. Rinominare o eliminare una modalità può cambiarne la regola applicata alle partite storiche: conserva «Golf» nel nome finché queste devono usare il punteggio crescente. Gli altri giochi mantengono il punteggio decrescente.
 
@@ -118,7 +118,7 @@ I test comprendono quelli originali di KingScore per formule ELO e posizioni, pi
 
 `src/play-history.test.ts` verifica filtri combinati, ordine delle partite, data senza ora, schede dello storico, pareggi, conteggio commenti e limite di 20 partite per pagina. Il test Neon verifica anche il conteggio pubblico dei commenti per una pagina e il rifiuto di richieste superiori a 20 partite.
 
-`src/golf.test.ts` verifica le tre lunghezze di Golf, le posizioni storiche, i pareggi, le vittorie manuali, i tre ELO storici e le colonne condizionali del dettaglio. `src/golf-api.test.ts` verifica creazione e modifica delle partite con un database simulato, mantenendo il punteggio decrescente per Bowling. Il test Neon verifica anche il salvataggio delle posizioni crescenti tramite API e i rating di modalità dopo il ricalcolo.
+`src/golf.test.ts` verifica le tre lunghezze di Golf, le posizioni storiche, i pareggi, le vittorie manuali, i tre ELO storici e le colonne condizionali del dettaglio. `src/golf-api.test.ts` verifica creazione e modifica delle partite con un database simulato, mantenendo il punteggio decrescente per Bowling e rifiutando vincitori o modalità mancanti. `src/play-selection.test.ts` verifica i controlli condivisi, il selettore obbligatorio, i pareggi, i vincitori rimossi dai partecipanti e le modalità archiviate. Il test Neon verifica anche il salvataggio delle posizioni crescenti tramite API e i rating di modalità dopo il ricalcolo.
 
 ## Limiti attuali
 

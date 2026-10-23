@@ -1,5 +1,5 @@
 import { initialWinners, localPlayDate, playDateTime } from './play-form'
-import { MIN_PLAYERS, matchLowerScoreWins } from './game-rules'
+import { MIN_PLAYERS, matchLowerScoreWins, playSelectionError } from './game-rules'
 import { useState } from 'react'
 import { Save, Search } from 'lucide-react'
 import type { Game, Match, Player } from './data'
@@ -27,20 +27,23 @@ export function AddPlayPage({ games, players, onSave, onCancel, onAddPlayer, onG
   const [notes, setNotes] = useState(initialPlay?.notes ?? '')
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
   const game = games.find(item => item.id === gameId)
+  const hasModes = !!game?.modes?.length
   const availableModes = game?.modes?.filter(mode => mode.active || initialPlay?.modeId === mode.id) ?? []
 
   async function save(event: React.FormEvent) {
     event.preventDefault(); setError('')
     if (!gameId) { setError('Seleziona un gioco.'); return }
-    if (modeId && !availableModes.some(mode => mode.id === modeId)) { setError('Seleziona una modalità disponibile.'); return }
     if (selected.length < MIN_PLAYERS) { setError('Seleziona almeno 2 giocatori.'); return }
+    const results = selected.map(playerId => ({ playerId, score: Number(scores[playerId] || 0), winner: winners.includes(playerId) }))
+    const selectionError = playSelectionError(game?.modes ?? [], modeId, results, initialPlay?.modeId)
+    if (selectionError) { setError(selectionError); return }
     setBusy(true)
     try {
       await onSave({
         id: initialPlay?.id ?? crypto.randomUUID(), gameId, modeId: modeId || null,
         playedAt: playDateTime(date, initialPlay), duration: Number(duration), location, notes,
         source: 'offline', cooperative: false, teamWon: null,
-        results: selected.map(playerId => ({ playerId, score: Number(scores[playerId] || 0), winner: winners.includes(playerId) })),
+        results,
       })
       onCancel()
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Salvataggio non riuscito.') }
@@ -59,9 +62,10 @@ export function AddPlayPage({ games, players, onSave, onCancel, onAddPlayer, onG
           </select>
         </>}
         {game && <div className="play-game-selected">{game.imageUrl ? <img src={game.imageUrl} alt={game.name} /> : <span>🎮</span>}<div><h3>{game.name}</h3><p>{game.platform}</p></div></div>}
-        {availableModes.length > 0 && <label className="field-label">Modalità<select aria-label="Modalità di gioco" value={modeId} onChange={event => setModeId(event.target.value)}>
-          <option value="">Nessuna</option>{availableModes.map(mode => <option key={mode.id} value={mode.id}>{mode.name}{mode.active ? '' : ' (archiviata)'}</option>)}
+        {hasModes && <label className="field-label">Modalità *<select aria-label="Modalità di gioco" required value={modeId} onChange={event => setModeId(event.target.value)}>
+          <option value="" disabled>Seleziona una modalità</option>{availableModes.map(mode => <option key={mode.id} value={mode.id}>{mode.name}{mode.active ? '' : ' (archiviata)'}</option>)}
         </select></label>}
+        {hasModes && !availableModes.length && <p className="form-error">Nessuna modalità disponibile. Attivane una nella gestione giochi prima di salvare.</p>}
         {!initialPlay && <button className="text-link" type="button" onClick={onGames}>+ Aggiungi Nuovo Gioco</button>}
       </section>
       <div className="play-meta-grid">
@@ -70,9 +74,10 @@ export function AddPlayPage({ games, players, onSave, onCancel, onAddPlayer, onG
         <section className="panel king-panel"><label className="field-label">Durata (minuti)<input type="number" min={1} max={1440} value={duration} onChange={event => setDuration(event.target.value)} /></label></section>
       </div>
       <section className="panel king-panel"><h3>Giocatori *</h3>{matchLowerScoreWins(game, modeId) && <p className="muted">Golf: il punteggio più basso è il migliore.</p>}<p className="play-player-count" aria-live="polite">{selected.length} {selected.length === 1 ? 'giocatore selezionato' : 'giocatori selezionati'} · minimo {MIN_PLAYERS}</p>
+        <p className="muted" id="play-winner-help">Seleziona almeno un vincitore. In caso di pareggio, seleziona tutti i vincitori.</p>
         <div className="play-player-list">{players.map(player => <article key={player.id}>
           <label><input type="checkbox" checked={selected.includes(player.id)} onChange={event => setSelected(event.target.checked ? [...selected, player.id] : selected.filter(id => id !== player.id))} /> <b>{player.alias || player.name}</b>{player.alias && player.alias !== player.name && <small> ({player.name})</small>}</label>
-          {selected.includes(player.id) && <div className="play-score-fields"><label className="field-label">Punteggio<input type="number" step="any" min={0} max={100000} value={scores[player.id] ?? ''} onChange={event => setScores({ ...scores, [player.id]: event.target.value })} placeholder="Punteggio" /></label><label><input type="checkbox" checked={winners.includes(player.id)} onChange={event => setWinners(event.target.checked ? [...winners, player.id] : winners.filter(id => id !== player.id))} /> Vincitore / Pareggio</label></div>}
+          {selected.includes(player.id) && <div className="play-score-fields"><label className="field-label">Punteggio<input type="number" step="any" min={0} max={100000} value={scores[player.id] ?? ''} onChange={event => setScores({ ...scores, [player.id]: event.target.value })} placeholder="Punteggio" /></label><label><input type="checkbox" aria-describedby="play-winner-help" checked={winners.includes(player.id)} onChange={event => setWinners(event.target.checked ? [...winners, player.id] : winners.filter(id => id !== player.id))} /> Vincitore / Pareggio</label></div>}
         </article>)}</div>
         {winners.filter(id => selected.includes(id)).length > 0 && <p className="success-message">{winners.filter(id => selected.includes(id)).length} vincitori selezionati</p>}
         <button className="text-link" type="button" onClick={onAddPlayer}>+ Aggiungi giocatore al volo</button>

@@ -41,7 +41,7 @@ it.skipIf(!branchUrl)('persists KingScore ELO in an isolated Neon branch', async
     createdGameId = String(gameResponse.body.id)
     expect(gameResponse.body.modes).toEqual(expect.arrayContaining([expect.objectContaining({id:modeA,name:'Gran Premio'}),expect.objectContaining({id:modeB,name:'Sopravvivenza'})]))
     const playResponse = makeResponse()
-    const playBody = {gameId:createdGameId,modeId:modeA,playedAt:'2026-01-02T12:00:00Z',duration:0,cooperative:true,teamWon:null,results:[{playerId:playerA,score:0,winner:false},{playerId:playerB,score:0,winner:false}]}
+    const playBody = {gameId:createdGameId,modeId:modeA,playedAt:'2026-01-02T12:00:00Z',duration:0,cooperative:true,teamWon:null,results:[{playerId:playerA,score:0,winner:true},{playerId:playerB,score:0,winner:true}]}
     for (const invalid of [{...playBody,modeId:'unknown'},{...playBody,gameId,modeId:modeA}]) {
       const rejected=makeResponse()
       await createPlay({method:'POST',cookies,query:{},body:invalid} as unknown as VercelRequest,rejected as unknown as VercelResponse)
@@ -51,7 +51,7 @@ it.skipIf(!branchUrl)('persists KingScore ELO in an isolated Neon branch', async
     expect(playResponse.code).toBe(201)
     expect(playResponse.body.eloUpdated).toBe(true)
     const [cooperativePlay] = await sql`select p.mode_id,p.duration_minutes,p.team_won,p.source,p.is_cooperative,s.winner from public.plays p join public.play_scores s on s.play_id=p.id where p.id=${String(playResponse.body.id)}`
-    expect(cooperativePlay).toMatchObject({mode_id:modeA,duration_minutes:null,team_won:null,source:'offline',is_cooperative:false,winner:false})
+    expect(cooperativePlay).toMatchObject({mode_id:modeA,duration_minutes:null,team_won:null,source:'offline',is_cooperative:false,winner:true})
     const secondPlayResponse=makeResponse()
     await createPlay({method:'POST',cookies,query:{},body:{...playBody,modeId:modeB,playedAt:'2026-01-03T12:00:00Z',cooperative:false,results:[{playerId:playerA,score:10,winner:true},{playerId:playerB,score:0,winner:false}]}} as unknown as VercelRequest,secondPlayResponse as unknown as VercelResponse)
     expect(secondPlayResponse.code).toBe(201)
@@ -147,8 +147,8 @@ it.skipIf(!branchUrl)('persists KingScore ELO in an isolated Neon branch', async
     expect(await sql`select id from public.play_comments where id=${String(commentId)}`).toHaveLength(0)
     const optionalMode=makeResponse()
     await createPlay({method:'POST',cookies,query:{},body:{...playBody,modeId:null}} as unknown as VercelRequest,optionalMode as unknown as VercelResponse)
-    expect(optionalMode.code).toBe(201)
-    expect((await sql`select mode_id from public.plays where id=${String(optionalMode.body.id)}`)[0].mode_id).toBeNull()
+    expect(optionalMode.code).toBe(400)
+    expect(optionalMode.body.error).toBe('Seleziona una modalità per questo gioco.')
     // Removing every saved mode must keep the plays, scores and aggregate ratings.
     const aggregateBefore=await sql`select player_id,rating,games_played from public.player_ratings where game_id=${createdGameId} order by player_id`
     const scoresBefore=await sql`select s.play_id,s.player_id,s.score,s.winner from public.play_scores s join public.plays p on p.id=s.play_id where p.game_id=${createdGameId} order by s.play_id,s.player_id`
@@ -181,7 +181,7 @@ it.skipIf(!branchUrl)('persists KingScore ELO in an isolated Neon branch', async
     await createGame({method:'PATCH',cookies,query:{},body:{...updateBody,modes:[{id:golfMode,name:'Golf (9 buche)',active:true}]}} as unknown as VercelRequest,golfGame as unknown as VercelResponse)
     expect(golfGame.code).toBe(200)
     const golfPlay = makeResponse()
-    await createPlay({method:'POST',cookies,query:{},body:{gameId:createdGameId,modeId:golfMode,playedAt:'2026-01-05T12:00:00Z',results:[{playerId:playerA,score:5},{playerId:playerC,score:10},{playerId:playerB,score:6}]}} as unknown as VercelRequest,golfPlay as unknown as VercelResponse)
+    await createPlay({method:'POST',cookies,query:{},body:{gameId:createdGameId,modeId:golfMode,playedAt:'2026-01-05T12:00:00Z',results:[{playerId:playerA,score:5,winner:true},{playerId:playerC,score:10,winner:false},{playerId:playerB,score:6,winner:false}]}} as unknown as VercelRequest,golfPlay as unknown as VercelResponse)
     expect(golfPlay).toMatchObject({code:201,body:{eloUpdated:true}})
     const golfId = String(golfPlay.body.id)
     expect(await sql`select player_id,position,winner from public.play_scores where play_id=${golfId} order by position`).toEqual([

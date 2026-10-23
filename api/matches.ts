@@ -4,7 +4,8 @@ import { requireAdmin } from './_lib/auth.js'
 import { assignPositions } from '../src/elo/positions.js'
 import { recalculateElo } from './_lib/elo.js'
 import { sql } from './_lib/db.js'
-import { MIN_PLAYERS, lowerScoreWins, resolveWinners } from '../src/game-rules.js'
+import { MIN_PLAYERS, lowerScoreWins, playSelectionError } from '../src/game-rules.js'
+import type { GameMode } from '../src/data.js'
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   const user = await requireAdmin(request, response)
@@ -31,7 +32,6 @@ export default async function handler(request: VercelRequest, response: VercelRe
   const gameId = editing ? String(existing!.game_id) : String(request.body?.gameId ?? '')
   const requestedMode = request.body?.modeId === undefined ? existing?.mode_id : request.body.modeId
   const modeId = requestedMode == null || requestedMode === '' ? null : String(requestedMode)
-  const retainedMode = editing && existing?.game_id === gameId && (existing.mode_id ?? null) === modeId
   const playedAtInput = String(request.body?.playedAt ?? '')
   const duration = request.body?.duration == null || Number(request.body.duration) === 0 ? null : Number(request.body.duration)
   const notes = String(request.body?.notes ?? '').trim() || null
@@ -50,18 +50,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
   const [validGame] = await sql`select id,name from public.games where id = ${gameId} limit 1`
   if (!validGame) return response.status(400).json({ error: 'Gioco non valido.' })
-  let modeName = ''
-  if (modeId) {
-    const [validMode] = await sql`select id,name from public.game_modes where id = ${modeId} and game_id = ${gameId} and (active or ${retainedMode}) limit 1`
-    if (!validMode) return response.status(400).json({ error: 'La modalità non è disponibile per questo gioco.' })
-    modeName = String(validMode.name)
-  }
+  const modes = await sql`select id,name,active from public.game_modes where game_id = ${gameId}` as GameMode[]
+  const selectionError = playSelectionError(modes, modeId, results, existing?.mode_id)
+  if (selectionError) return response.status(400).json({ error: selectionError })
+  const modeName = modes.find(mode => mode.id === modeId)?.name ?? ''
   const allowed = await sql`select id from public.players where id = any(${playerIds}::uuid[])`
   if (allowed.length !== playerIds.length) return response.status(400).json({ error: 'Uno o più giocatori non sono validi.' })
   const lowScore = lowerScoreWins(String(validGame.name), modeName)
-  const manualWinners = results.some((result: { winner?: boolean }) => typeof result.winner === 'boolean')
-  const resolved = resolveWinners(playerIds.map((playerId: string, index: number) => ({ playerId, score: scores[index] })), lowScore)
-  const winners = results.map((result: { winner?: boolean }, index: number) => manualWinners ? result.winner === true : resolved[index].winner)
+  const winners = results.map((result: { winner?: boolean }) => result.winner === true)
   const winnerCount = winners.filter(Boolean).length
   const ranked = assignPositions(playerIds.map((playerId: string, index: number) => ({ playerId, score: scores[index], winner: !!winners[index] })), { lowerScoreWins: lowScore })
   try {
