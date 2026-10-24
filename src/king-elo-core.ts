@@ -1,8 +1,8 @@
-import type { Game, Match, Player } from './data'
-import { simulateAllPlays, type GamePlayerState, type GeneralPlayerState } from './elo/simulation'
-import { simulateModePlays } from './elo/mode-simulation'
-import { matchLowerScoreWins, resolveWinners } from './game-rules'
-import { modeKey } from './game-modes'
+import type { Game, Match, Player } from './data.js'
+import { simulateAllPlays, type GamePlayerState, type GeneralPlayerState } from './elo/simulation.js'
+import { simulateModePlays } from './elo/mode-simulation.js'
+import { matchLowerScoreWins, resolveWinners } from './game-rules.js'
+import { modeKey } from './game-modes.js'
 export type KingRating = { rating: number; games: number; wins: number; draws: number; losses: number }
 export type KingHistoryPoint = { match: number; label: string; date: string; values: Record<string, number> }
 export type KingEloResult = { perGame: Record<string, Record<string, KingRating>>; perMode: Record<string, Record<string, KingRating>>; general: Record<string, KingRating>; history: KingHistoryPoint[]; perGameHistory: Record<string, KingHistoryPoint[]>; perModeHistory: Record<string, KingHistoryPoint[]> }

@@ -127,3 +127,12 @@ I test comprendono quelli originali di KingScore per formule ELO e posizioni, pi
 ## Limiti attuali
 
 Email e password si modificano dopo la verifica della password attuale. Non sono ancora presenti verifica dell’email e recupero password. Il modello della libreria è condiviso: i dati di gioco sono pubblici; i dati degli account sono accessibili al proprietario e al pannello admin.
+
+## App Android
+
+Gli utenti loggati possono scaricare `PartyScore.apk` dal menu account →
+**Scarica APK Android**. Il backend controlla la sessione e invia in streaming
+l'APK dell'ultima release stabile, anche da una repo GitHub privata. Il token
+GitHub resta sul server. `PartyScore-Android` è privata: il backend richiede
+`ANDROID_RELEASE_GITHUB_TOKEN` in produzione, con accesso alle release
+della repo Android. Configurazione e limiti: [API Android](docs/ANDROID_API.md).

@@ -13,7 +13,7 @@
  * cronologicamente per `played_at` crescente (lo garantiscono le query
  * dei chiamanti) e non esegue alcuna operazione di I/O.
  */
-import { assignPositions } from './positions.ts'
+import { assignPositions } from './positions.js'
 
 // ─── Formule ELO (spostate da eloCalculator.ts, invariate) ───────────────────
 

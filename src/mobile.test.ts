@@ -1,0 +1,50 @@
+import { describe, expect, it } from 'vitest'
+import { dashboard, eloTable, matchesPage } from '../api/_lib/mobile'
+import type { PartyData } from './data'
+import { simulateKingElo } from './king-elo-core'
+
+const data: PartyData = {
+  players: [{ id: 'a', name: 'Alice', initials: 'AL', color: '#10b981' }, { id: 'b', name: 'Bob', alias: 'Bobby', initials: 'BO', color: '#38bdf8' }],
+  games: [{ id: 'golf', name: 'Golf', platform: 'Switch', category: 'Sport', emoji: '', accent: '#10b981', modes: [{ id: 'nine', name: '9 buche', active: false }] }],
+  matches: [
+    { id: 'new', gameId: 'golf', modeId: 'nine', playedAt: '2026-09-30T22:30:00Z', duration: 20, results: [{ playerId: 'a', score: 8 }, { playerId: 'b', score: 12 }] },
+    { id: 'old', gameId: 'golf', playedAt: '2026-09-12T12:00:00Z', duration: 15, results: [{ playerId: 'a', score: 4 }, { playerId: 'b', score: 4 }] },
+  ],
+}
+
+describe('native read model', () => {
+  it('uses Rome month boundaries, zero-filled months and server-resolved Golf winners', () => {
+    const result = dashboard(data, new Date('2026-10-01T12:00:00Z'))
+    expect(result.totalMatches).toBe(2)
+    expect(result.months).toHaveLength(12)
+    expect(result.months.at(-1)).toEqual({ key: '2026-10', label: 'Ott', matches: 1 })
+    expect(result.months.at(-2)?.matches).toBe(1)
+    expect(result.victories[0]).toMatchObject({ player: { id: 'a' }, wins: 1, winRate: 100 })
+    expect(result.recent[0].results.find(r => r.playerId === 'a')).toMatchObject({ winner: true, position: 1 })
+    expect(result.favorites[0].count).toBe(2)
+  })
+  it('filters before paginating and preserves archived modes and ties', () => {
+    expect(matchesPage(data, { search: 'bobby', mode: 'nine', year: '2026', month: '10' })).toMatchObject({ total: 1, page: 1 })
+    const result = matchesPage(data, { search: 'GOLF', month: '9', page: '999' })
+    expect(result).toMatchObject({ page: 1, totalPages: 1, total: 1 })
+    expect(result.items[0].results.every(r => r.winner)).toBe(true)
+    expect(matchesPage(data, { search: 'missing' }).items).toEqual([])
+  })
+  it('returns exactly the web simulator ratings, including independent mode ratings', () => {
+    const expected = simulateKingElo(data.players, data.matches, data.games)
+    expect(eloTable(data).rows.find(r => r.player.id === 'a')?.rating).toBe(expected.general.a.rating)
+    expect(eloTable(data, 'golf', 'nine').rows.find(r => r.player.id === 'b')?.rating).toBe(expected.perMode['["golf","nine"]'].b.rating)
+  })
+  it('handles an empty database and a December/January boundary', () => {
+    const result = dashboard({ players: [], games: [], matches: [] }, new Date('2025-12-31T23:30:00Z'))
+    expect(result.months.at(-1)?.key).toBe('2026-01')
+    expect(result.months[0].key).toBe('2025-02')
+    expect(result.victories).toEqual([])
+    expect(result.favorites).toEqual([])
+  })
+  it('keeps cooperative failures out of monthly victories', () => {
+    const cooperative = { ...data, matches: [{ ...data.matches[0], cooperative: true, teamWon: false }] }
+    expect(dashboard(cooperative, new Date('2026-10-01')).victories.every(v => v.wins === 0)).toBe(true)
+    expect(matchesPage(cooperative, {}).items[0].results.every(r => !r.winner)).toBe(true)
+  })
+})
