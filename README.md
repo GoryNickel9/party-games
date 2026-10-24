@@ -4,6 +4,11 @@ Tracker dei party game su console, con pagine e flussi ripresi da KingScore. Ver
 
 Sito: [partyscore.baldeddu.cc](https://partyscore.baldeddu.cc/).
 
+L'icona con dado e stella in `public/favicon.svg` è condivisa con l'app Android
+`../PartyScore-Android`. Compare nel login e nell'intestazione. Le versioni ICO,
+Apple Touch e PNG da 192 e 512 pixel derivano dallo stesso SVG;
+`public/site.webmanifest` collega le icone per l'aggiunta alla schermata Home.
+
 ## Accesso e permessi
 
 | Pagine e operazioni | Accesso |

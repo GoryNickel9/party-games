@@ -1,8 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="15" fill="#10b981" />
-  <!-- Controller from Lucide's Gamepad2, matching the PartyScore navigation logo. -->
-  <g transform="translate(6 6) scale(2.166666667)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
-    <path d="M6 11h4M8 9v4M15 12h.01M18 10h.01" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" fill="none">
+  <path fill="#10B981" d="M24 0H84Q108 0 108 24V84Q108 108 84 108H24Q0 108 0 84V24Q0 0 24 0Z"/>
+  <g transform="rotate(-12 52 56)">
+    <path fill="#FFF" d="M41 33H63Q75 33 75 45V67Q75 79 63 79H41Q29 79 29 67V45Q29 33 41 33Z"/>
+    <g fill="#047857">
+      <circle cx="42" cy="44" r="4"/><circle cx="62" cy="44" r="4"/>
+      <circle cx="52" cy="56" r="4"/>
+      <circle cx="42" cy="68" r="4"/><circle cx="62" cy="68" r="4"/>
+    </g>
   </g>
+  <path fill="#FBBF24" d="M76 25L78 31L84 33L78 35L76 41L74 35L68 33L74 31Z"/>
 </svg>

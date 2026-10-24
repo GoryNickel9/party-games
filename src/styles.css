@@ -21,3 +21,6 @@
 .coop-toggle{display:flex;align-items:center;gap:9px;margin:0 0 13px;color:#cbd5e1;font-size:14px}.coop-toggle input{accent-color:#10b981;width:15px;height:15px}.match-info-open{cursor:pointer}.match-info-open:hover>b{color:#34d399}.play-detail-summary{display:grid;gap:8px;margin:16px 0;padding:16px;background:#0f172a;border-radius:8px}.play-detail-summary>b{color:#34d399;font-size:14px}.play-detail-summary>span,.play-detail-summary>small,.play-detail-summary p{margin:0;color:#cbd5e1;font-size:14px}.play-score-table{display:grid}.play-score-table>div{display:grid;grid-template-columns:1fr 140px 120px;gap:12px;padding:11px 8px;border-bottom:1px solid #334155;color:#cbd5e1;font-size:14px}.play-score-table>div:first-child{color:#94a3b8;font-size:14px;font-weight:650;letter-spacing:.6px}.play-score-table>div strong{text-align:right;color:#f8fafc}@media(max-width:550px){.play-score-table>div{grid-template-columns:1fr 82px 72px;gap:5px;font-size:14px}}
 
 .profile-nav-menu a.android-download{min-height:44px;height:auto;text-decoration:none;white-space:nowrap}.profile-nav-menu a.android-download:focus-visible{outline:2px solid #34d399;outline-offset:2px}
+
+/* Keep the shared app icon inside the existing brand tile. */
+.brand-mark > img{display:block;width:100%;height:100%;border-radius:inherit}

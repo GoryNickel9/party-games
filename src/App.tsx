@@ -48,7 +48,7 @@ function AuthScreen({ onDemo, onSignedIn }: { onDemo: () => void; onSignedIn: (u
       onSignedIn(result.user)
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Riprova tra poco.') } finally { setBusy(false) }
   }
-  return <main className="auth-page"><section className="auth-card"><div className="brand-mark large"><Gamepad2 size={24} /></div><p className="eyebrow">IL TUO TABELLONE</p><h1>Le serate<br /><span>hanno un punteggio.</span></h1><p className="auth-copy">Tieni il conto delle sfide, dei game e delle rivincite.</p><form onSubmit={submit} className="auth-form">
+  return <main className="auth-page"><section className="auth-card"><div className="brand-mark large"><img src="/favicon.svg?v=2" alt="" width={47} height={47} /></div><p className="eyebrow">IL TUO TABELLONE</p><h1>Le serate<br /><span>hanno un punteggio.</span></h1><p className="auth-copy">Tieni il conto delle sfide, dei game e delle rivincite.</p><form onSubmit={submit} className="auth-form">
     {mode === 'register' && <label>Come ti chiami?<input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} minLength={2} maxLength={32} required placeholder="Il tuo nome" /></label>}
     <label>Email<input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="nome@email.it" /></label>
     <label>Password<input type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(e) => setPassword(e.target.value)} minLength={mode === 'register' ? 10 : undefined} required placeholder={mode === 'register' ? 'Almeno 10 caratteri' : 'La tua password'} /></label>
@@ -144,7 +144,7 @@ function App() {
 
   return <div className="app-shell">
     <aside className="sidebar">
-      <button className="brand" onClick={() => setPage('overview')}><span className="brand-mark"><Gamepad2 size={19} /></span><span>PartyScore</span></button>
+      <button className="brand" onClick={() => setPage('overview')}><span className="brand-mark"><img src="/favicon.svg?v=2" alt="" width={33} height={33} /></span><span>PartyScore</span></button>
       <nav className="side-nav" aria-label="Navigazione principale">
         <button className={page === 'overview' ? 'nav-active' : ''} onClick={() => setPage('overview')}><LayoutDashboard size={17} /><span>Dashboard</span></button>
         <button className={page === 'matches' ? 'nav-active' : ''} onClick={() => setPage('matches')}><CalendarDays size={17} /><span>Partite</span></button>
