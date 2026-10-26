@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-const mocks = vi.hoisted(() => ({ user: vi.fn(), data: vi.fn() }))
+const mocks = vi.hoisted(() => ({ user: vi.fn(), data: vi.fn(), linked: vi.fn() }))
 vi.mock('../api/_lib/auth', () => ({ authenticatedUser: mocks.user, requireMethod: (request: VercelRequest, response: VercelResponse, method: string) => {
   if (request.method === method) return true
   response.status(405).json({ error: 'Metodo non consentito.' }); return false
 } }))
-vi.mock('../api/data', () => ({ readPartyData: mocks.data }))
+vi.mock('../api/data', () => ({ readPartyData: mocks.data, readLinkedPlayer: mocks.linked }))
 import handler from '../api/mobile'
 
 const response = () => ({ code: 200, body: undefined as unknown, setHeader: vi.fn(), status(code: number) { this.code = code; return this }, json(body: unknown) { this.body = body; return this }, end() { return this } })
@@ -14,10 +14,26 @@ async function call(query: Record<string, unknown>, method = 'GET') {
   await handler({ method, query } as unknown as VercelRequest, res as unknown as VercelResponse)
   return res
 }
-beforeEach(() => { vi.resetAllMocks(); mocks.user.mockResolvedValue({ id: 'user' }); mocks.data.mockResolvedValue({ players: [], games: [], matches: [] }) })
+beforeEach(() => { vi.resetAllMocks(); mocks.user.mockResolvedValue({ id: 'user' }); mocks.linked.mockResolvedValue(null); mocks.data.mockResolvedValue({ players: [], games: [], matches: [] }) })
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
 describe('authenticated mobile API', () => {
+  it('restricts personal Wrapped by the server-side account link, including forged requests', async () => {
+    mocks.data.mockResolvedValue({ players: [{ id: 'mine', name: 'Io' }, { id: 'other', name: 'Altro' }], games: [], matches: [] })
+    mocks.linked.mockResolvedValue('mine')
+    expect((await call({ resource: 'wrapped', year: '2026', player: 'other' })).code).toBe(403)
+    const mine = await call({ resource: 'wrapped', year: '2026', player: 'mine' })
+    expect(mine.code).toBe(200)
+    expect(mine.body).toMatchObject({ personalId: 'mine', playerId: 'mine', players: [{ id: 'mine', name: 'Io' }] })
+    expect(mocks.linked).toHaveBeenCalledWith('user')
+    expect((await call({ resource: 'wrapped', year: '2026' })).code).toBe(200)
+    mocks.linked.mockResolvedValue(null)
+    expect((await call({ resource: 'wrapped', player: 'mine' })).code).toBe(403)
+    expect((await call({ resource: 'wrapped' })).body).toMatchObject({ personalId: null, players: [] })
+    mocks.user.mockResolvedValue({ id: 'admin', role: 'admin' })
+    expect((await call({ resource: 'wrapped', player: 'other' })).code).toBe(200)
+    expect((await call({ resource: 'wrapped', player: 'missing' })).code).toBe(403)
+  })
   it('rejects anonymous reads before touching data or GitHub', async () => {
     mocks.user.mockResolvedValue(null)
     expect((await call({ resource: 'dashboard' })).code).toBe(401)

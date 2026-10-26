@@ -10,6 +10,7 @@ private, no-store`.
 | `dashboard` | Totale partite, ultimi 12 mesi, top 3 giochi, top 3 giocatori del mese, ultime 5 partite, catalogo giochi/modalità e anni disponibili |
 | `matches` | Partite ordinate, risultati e vincitori già risolti, 20 elementi per pagina |
 | `elo` | Classifica generale, per gioco oppure per modalità; ELO, livello e win rate già calcolati |
+| `wrapped` | Riepilogo annuale generale o personale, con autorizzazione sul giocatore |
 | `update` | Metadati dell'APK e URL GitHub temporaneo, senza token |
 | `download` | APK in streaming; alias web `/api/download` |
 
@@ -206,3 +207,24 @@ usata e non sono stati modificati dati di gioco.
 La prova copre download e installazione reali sull’emulatore, non un telefono
 fisico o il login con password. Dettagli e artefatti sono documentati nella
 repo Android, `docs/VALIDATION.md`, sezione «Autoupdater con repo privata».
+# Wrapped Android
+
+`GET /api/mobile?resource=wrapped&year=2026&player=<id>` restituisce un
+riepilogo annuale versione 1. `player` vuoto indica le statistiche generali.
+L’anno omesso usa quello corrente nel fuso `Europe/Rome`.
+
+L’utente autenticato può richiedere soltanto il giocatore collegato tramite
+`players.account_user_id`; un admin può richiedere qualsiasi giocatore esistente.
+Un account senza collegamento dispone del solo riepilogo generale. Richieste
+personali non consentite ricevono 403, anche quando il filtro è inviato a mano.
+`players` contiene solo le opzioni autorizzate, `personalId` il collegamento
+risolto dal server o null. Nessun collegamento viene dedotto da nome o email.
+
+La risposta include `year`, `playerId`, `years`, `matches`, `minutes`, `games`,
+`topGame`, `topMonth`, `wins`, `bestGame`, `longest`, `busiest` e `ratings`.
+I record assenti sono null; `wins` e `bestGame` sono null nel riepilogo generale.
+`ratings` contiene nome, id, ELO iniziale e finale dei partecipanti dell’anno
+o del solo giocatore selezionato. La simulazione usa l’intero storico, poi
+estrae i valori annuali. Le date di aggregazione usano `Europe/Rome`.
+Le vittorie cooperative seguono `teamWon`; le altre usano `rankedMatchResults`.
+Non sono inclusi i grafici di andamento ELO e attività mensile.

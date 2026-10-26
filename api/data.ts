@@ -2,6 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { requireMethod } from './_lib/auth.js'
 import { sql } from './_lib/db.js'
 
+export async function readLinkedPlayer(userId: string): Promise<string | null> {
+  const [player] = await sql`select id from public.players where account_user_id = ${userId} limit 1`
+  return player ? String(player.id) : null
+}
+
 export async function readPartyData() {
   const [players, games, plays, modes] = await Promise.all([
     sql`select id, name, alias, color, avatar_url from public.players order by name`,
