@@ -1,19 +1,29 @@
-import type { Game, Match, Player } from './data'
-import { simulationInputs } from './king-elo-core'
-import { simulateAllPlays } from './elo/simulation'
-import { simulateModePlays } from './elo/mode-simulation'
+import type { Game, Match, Player } from './data.js'
+import { simulationInputs } from './king-elo-core.js'
+import { simulateAllPlays } from './elo/simulation.js'
+import { simulateModePlays } from './elo/mode-simulation.js'
 
 export type PlayRating = { rating: number; ratingChange: number }
+export type PlayElo = { mode: Record<string, PlayRating>; game: Record<string, PlayRating>; general: Record<string, PlayRating> }
 
-export function getPlayElo(players: Player[], matches: Match[], playId: string, games: Game[] = []) {
+/** Simulate the full history once, before filtering or paginating matches. */
+export function getPlaysElo(players: Player[], matches: Match[], games: Game[] = []) {
   const chronological = [...matches].sort((a, b) => Date.parse(a.playedAt) - Date.parse(b.playedAt) || a.id.localeCompare(b.id))
   const inputs = simulationInputs(players, chronological, games)
   const simulation = simulateAllPlays(inputs)
   const modeSimulation = simulateModePlays(inputs)
-  const hasMode = !!matches.find(match => match.id === playId)?.modeId
-  return {
-    mode: Object.fromEntries(modeSimulation.gameHistory.filter(entry => entry.playId === playId && hasMode).map(entry => [entry.playerId, { rating: entry.rating, ratingChange: entry.ratingChange }])),
-    game: Object.fromEntries(simulation.gameHistory.filter(entry => entry.playId === playId).map(entry => [entry.playerId, { rating: entry.rating, ratingChange: entry.ratingChange }])),
-    general: Object.fromEntries(simulation.generalHistory.filter(entry => entry.playId === playId).map(entry => [entry.playerId, { rating: entry.rating, ratingChange: entry.ratingChange }])),
+  const ratings = new Map<string, PlayElo>(matches.map(match => [match.id, { mode: {}, game: {}, general: {} }]))
+  const withMode = new Set(matches.filter(match => match.modeId).map(match => match.id))
+  const histories = { mode: modeSimulation.gameHistory, game: simulation.gameHistory, general: simulation.generalHistory }
+  for (const scope of ['mode', 'game', 'general'] as const) {
+    for (const entry of histories[scope]) {
+      if (scope === 'mode' && !withMode.has(entry.playId)) continue
+      ratings.get(entry.playId)![scope][entry.playerId] = { rating: entry.rating, ratingChange: entry.ratingChange }
+    }
   }
+  return ratings
+}
+
+export function getPlayElo(players: Player[], matches: Match[], playId: string, games: Game[] = []): PlayElo {
+  return getPlaysElo(players, matches, games).get(playId) ?? { mode: {}, game: {}, general: {} }
 }

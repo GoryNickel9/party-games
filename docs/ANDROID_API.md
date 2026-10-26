@@ -20,6 +20,15 @@ assenza di `game` significa classifica generale. Modalità archiviate restano
 consultabili. Vincitori, pareggi e Golf usano le funzioni esistenti della web app.
 Gli ELO riutilizzano `simulateKingElo`; non dipendono dalla cache del database.
 
+Ogni risultato di `dashboard.recent` e `matches.items` include inoltre
+`elo: { mode, game, general }`. Ogni ambito contiene `{ rating, ratingChange }`
+dopo quella partita, oppure `null` se non disponibile. `mode` è nullo per le
+partite senza modalità. Il calcolo usa `getPlaysElo`, condiviso con il dettaglio
+web, sull'intero storico prima dei filtri e della paginazione; nessun rating
+attuale sostituisce quello storico. Le variazioni possono essere positive,
+negative o zero. Il formato resta versione 1 e i client precedenti ignorano i
+nuovi campi. Occorre distribuire il backend aggiornato per mostrarli su Android.
+
 Il server restituisce 401 per sessione assente/scaduta, 400 per filtri non validi,
 405 per metodi diversi da GET e 500 per errori di lettura. Il client non ricalcola
 statistiche, classifiche o regole di gioco. L'aggregazione mensile del nuovo

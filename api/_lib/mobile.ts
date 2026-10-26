@@ -2,6 +2,7 @@ import type { Game, Match, PartyData, Player } from '../../src/data.js'
 import { rankedMatchResults } from '../../src/game-rules.js'
 import { simulateKingElo, type KingRating } from '../../src/king-elo-core.js'
 import { modeKey } from '../../src/game-modes.js'
+import { getPlaysElo, type PlayElo } from '../../src/play-elo.js'
 
 export const MOBILE_TIME_ZONE = 'Europe/Rome'
 const dateParts = new Intl.DateTimeFormat('en-CA', { timeZone: MOBILE_TIME_ZONE, year: 'numeric', month: '2-digit' })
@@ -13,10 +14,12 @@ const monthKey = (value: string | Date) => {
 const playerView = (player?: Player) => ({ id: player?.id ?? '', name: player?.alias || player?.name || 'Giocatore', initials: player?.initials ?? '?', color: player?.color ?? '#475569', avatarUrl: player?.avatar_url ?? null })
 const gameView = (game?: Game) => ({ id: game?.id ?? '', name: game?.name ?? 'Gioco sconosciuto', platform: game?.platform ?? '', imageUrl: game?.imageUrl ?? null, accent: game?.accent ?? '#10b981', modes: game?.modes ?? [] })
 
-export function matchView(data: PartyData, match: Match) {
+function matchView(data: PartyData, match: Match, elo: PlayElo | undefined) {
   const game = data.games.find(g => g.id === match.gameId)
   const ranked = rankedMatchResults(match, game)
-  const results = ranked.map(result => ({ ...result, winner: match.cooperative ? !!match.teamWon : result.winner, player: playerView(data.players.find(p => p.id === result.playerId)) }))
+  const results = ranked.map(result => ({ ...result, winner: match.cooperative ? !!match.teamWon : result.winner, player: playerView(data.players.find(p => p.id === result.playerId)), elo: {
+    mode: elo?.mode[result.playerId] ?? null, game: elo?.game[result.playerId] ?? null, general: elo?.general[result.playerId] ?? null,
+  } }))
   return { id: match.id, game: gameView(game), modeId: match.modeId ?? null, mode: game?.modes?.find(m => m.id === match.modeId)?.name ?? '', playedAt: match.playedAt, duration: match.duration, location: match.location ?? '', notes: match.notes ?? '', results }
 }
 
@@ -44,11 +47,12 @@ export function dashboard(data: PartyData, now = new Date()) {
     return { player: playerView(player), matches: plays.length, wins, winRate: plays.length ? Math.round(wins / plays.length * 100) : 0, points }
   }).filter(p => p.matches > 0).sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.points - a.points || a.player.id.localeCompare(b.player.id))
   const metadata = catalog(data)
+  const elo = getPlaysElo(data.players, data.matches, data.games)
   return {
     totalMatches: data.matches.length, month: currentKey, timeZone: MOBILE_TIME_ZONE,
     months, favorites: metadata.games.filter(g => g.count > 0).slice(0, 3),
     victories: victories.slice(0, 3),
-    recent: [...data.matches].sort(compareMatches).slice(0, 5).map(m => matchView(data, m)),
+    recent: [...data.matches].sort(compareMatches).slice(0, 5).map(m => matchView(data, m, elo.get(m.id))),
     ...metadata,
   }
 }
@@ -69,7 +73,8 @@ export function matchesPage(data: PartyData, filters: MatchFilters) {
   }).sort(compareMatches)
   const pageSize = 20, totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const page = Math.min(Number(filters.page ?? 1), totalPages)
-  return { page, pageSize, totalPages, total: filtered.length, items: filtered.slice((page - 1) * pageSize, page * pageSize).map(m => matchView(data, m)) }
+  const elo = getPlaysElo(data.players, data.matches, data.games)
+  return { page, pageSize, totalPages, total: filtered.length, items: filtered.slice((page - 1) * pageSize, page * pageSize).map(m => matchView(data, m, elo.get(m.id))) }
 }
 
 export function eloTable(data: PartyData, gameId = '', modeId = '') {

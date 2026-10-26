@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { dashboard, eloTable, matchesPage } from '../api/_lib/mobile'
 import type { PartyData } from './data'
 import { simulateKingElo } from './king-elo-core'
+import { getPlayElo } from './play-elo'
 
 const data: PartyData = {
   players: [{ id: 'a', name: 'Alice', initials: 'AL', color: '#10b981' }, { id: 'b', name: 'Bob', alias: 'Bobby', initials: 'BO', color: '#38bdf8' }],
@@ -34,6 +35,31 @@ describe('native read model', () => {
     const expected = simulateKingElo(data.players, data.matches, data.games)
     expect(eloTable(data).rows.find(r => r.player.id === 'a')?.rating).toBe(expected.general.a.rating)
     expect(eloTable(data, 'golf', 'nine').rows.find(r => r.player.id === 'b')?.rating).toBe(expected.perMode['["golf","nine"]'].b.rating)
+  })
+  it('includes historical ELO and changes in dashboard and filtered history, matching the web detail', () => {
+    const recent = dashboard(data, new Date('2026-10-01')).recent
+    const filtered = matchesPage(data, { mode: 'nine' }).items[0]
+    expect(filtered).toEqual(recent[0])
+    expect(filtered.results.find(r => r.playerId === 'a')?.elo).toEqual({
+      mode: { rating: 1024, ratingChange: 24 }, game: { rating: 1048, ratingChange: 24 }, general: { rating: 1048, ratingChange: 24 },
+    })
+    expect(filtered.results.find(r => r.playerId === 'b')?.elo.game).toEqual({ rating: 1000, ratingChange: -24 })
+    for (const play of recent) {
+      const web = getPlayElo(data.players, data.matches, play.id, data.games)
+      for (const result of play.results) {
+        expect(result.elo).toEqual({ mode: web.mode[result.playerId] ?? null, game: web.game[result.playerId] ?? null, general: web.general[result.playerId] ?? null })
+      }
+    }
+    expect(recent[1].results[0].elo).toEqual({ mode: null, game: { rating: 1024, ratingChange: 24 }, general: { rating: 1024, ratingChange: 24 } })
+  })
+  it('uses the entire history before pagination, without including future ratings in old matches', () => {
+    const matches = Array.from({ length: 23 }, (_, index) => ({ ...data.matches[0], id: `play-${index}`, playedAt: `2026-10-${String(index + 1).padStart(2, '0')}T12:00:00Z` }))
+    const full = { ...data, matches }
+    const lastPage = matchesPage(full, { page: '2' })
+    expect(lastPage.items).toHaveLength(3)
+    expect(lastPage.items.at(-1)?.results[0].elo.game).toEqual({ rating: 1024, ratingChange: 24 })
+    const web = getPlayElo(data.players, matches.slice(0, 3), 'play-2', data.games)
+    expect(lastPage.items[0].results[0].elo.game).toEqual(web.game.a)
   })
   it('handles an empty database and a December/January boundary', () => {
     const result = dashboard({ players: [], games: [], matches: [] }, new Date('2025-12-31T23:30:00Z'))
