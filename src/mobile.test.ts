@@ -14,6 +14,27 @@ const data: PartyData = {
 }
 
 describe('native read model', () => {
+  it('ranks favorite game-mode pairs independently, with deterministic ties and a top-three limit', () => {
+    const repeat = (gameId: string, modeId: string | null, count: number, prefix: string) => Array.from({ length: count }, (_, i) => ({ ...data.matches[0], id: `${prefix}-${i}`, gameId, modeId }))
+    const sample: PartyData = { ...data,
+      games: [data.games[0], { ...data.games[0], id: 'kart', name: 'Kart', platform: 'Switch 2' }],
+      matches: [...repeat('golf', 'nine', 3, 'a'), ...repeat('golf', 'another', 2, 'b'), ...repeat('kart', 'nine', 3, 'c'), ...repeat('golf', null, 1, 'd')],
+    }
+    const result = dashboard(sample).favoriteModes
+    expect(result).toHaveLength(3)
+    expect(result.map(item => [item.game.id, item.modeId, item.count])).toEqual([['golf', 'nine', 3], ['kart', 'nine', 3], ['golf', 'another', 2]])
+    expect(result[0]).toMatchObject({ modeName: '9 buche (archiviata)', game: { name: 'Golf', platform: 'Switch' } })
+    expect(result[1].game.platform).toBe('Switch 2')
+    expect(result[2].modeName).toBe('Modalità non disponibile')
+    expect(dashboard({ ...sample, matches: [...sample.matches].reverse() }).favoriteModes).toEqual(result)
+  })
+  it('keeps unassigned matches together and returns active mode names without an archived label', () => {
+    const sample = { ...data, games: [{ ...data.games[0], modes: [{ id: 'nine', name: '9 buche', active: true }] }],
+      matches: [data.matches[0], { ...data.matches[1], id: 'no-mode-1', modeId: null }, { ...data.matches[1], id: 'no-mode-2' }],
+    }
+    expect(dashboard(sample).favoriteModes.map(item => [item.modeId, item.modeName, item.count])).toEqual([[null, 'Senza modalità', 2], ['nine', '9 buche', 1]])
+    expect(dashboard({ players: [], games: [], matches: [] }).favoriteModes).toEqual([])
+  })
   it('uses Rome month boundaries, zero-filled months and server-resolved Golf winners', () => {
     const result = dashboard(data, new Date('2026-10-01T12:00:00Z'))
     expect(result.totalMatches).toBe(2)

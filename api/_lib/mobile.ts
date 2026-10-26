@@ -48,9 +48,24 @@ export function dashboard(data: PartyData, now = new Date()) {
   }).filter(p => p.matches > 0).sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || b.points - a.points || a.player.id.localeCompare(b.player.id))
   const metadata = catalog(data)
   const elo = getPlaysElo(data.players, data.matches, data.games)
+  const modeCounts = new Map<string, { gameId: string; modeId: string | null; count: number }>()
+  for (const match of data.matches) {
+    const modeId = match.modeId || null
+    const key = JSON.stringify([match.gameId, modeId])
+    const entry = modeCounts.get(key) ?? { gameId: match.gameId, modeId, count: 0 }
+    entry.count++
+    modeCounts.set(key, entry)
+  }
+  const favoriteModes = [...modeCounts.values()].map(entry => {
+    const game = data.games.find(game => game.id === entry.gameId)
+    const mode = game?.modes?.find(mode => mode.id === entry.modeId)
+    const modeName = mode ? mode.name + (mode.active ? '' : ' (archiviata)') : entry.modeId ? 'Modalità non disponibile' : 'Senza modalità'
+    return { game: gameView(game), modeId: entry.modeId, modeName, count: entry.count }
+  }).sort((a, b) => b.count - a.count || a.game.name.localeCompare(b.game.name, 'it') || a.modeName.localeCompare(b.modeName, 'it')
+    || a.game.id.localeCompare(b.game.id) || (a.modeId ?? '').localeCompare(b.modeId ?? '')).slice(0, 3)
   return {
     totalMatches: data.matches.length, month: currentKey, timeZone: MOBILE_TIME_ZONE,
-    months, favorites: metadata.games.filter(g => g.count > 0).slice(0, 3),
+    months, favorites: metadata.games.filter(g => g.count > 0).slice(0, 3), favoriteModes,
     victories: victories.slice(0, 3),
     recent: [...data.matches].sort(compareMatches).slice(0, 5).map(m => matchView(data, m, elo.get(m.id))),
     ...metadata,

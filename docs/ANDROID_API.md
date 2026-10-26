@@ -228,3 +228,16 @@ o del solo giocatore selezionato. La simulazione usa l’intero storico, poi
 estrae i valori annuali. Le date di aggregazione usano `Europe/Rome`.
 Le vittorie cooperative seguono `teamWon`; le altre usano `rankedMatchResults`.
 Non sono inclusi i grafici di andamento ELO e attività mensile.
+
+## Modalità preferite — Android 1.0.8
+
+La risorsa `dashboard` aggiunge `favoriteModes`, le prime tre coppie
+`gameId`/`modeId` per numero di partite nell’intero storico. Ogni elemento
+contiene `game` (metadati del gioco, inclusi nome e piattaforma), `modeId`
+(stringa o null), `modeName` e `count`. I pari merito si ordinano per nome
+del gioco, nome modalità e identificatori. Non si sommano modalità omonime
+di giochi diversi; `modeId` assente o null indica «Senza modalità» per quel gioco.
+Le modalità archiviate includono «(archiviata)» nel nome; un riferimento
+non risolto mostra «Modalità non disponibile». Un database vuoto restituisce `[]`.
+Il campo `favorites` precedente resta disponibile; contratto versione 1 e
+client precedenti compatibili. Nessuna migrazione del database.
